@@ -1,7 +1,7 @@
 # mp3conv
 
 A small Python module for downloading and converting YouTube videos using [yt-dlp](https://github.com/yt-dlp/yt-dlp).
-![preview](./preview.png)
+<img src="./preview.png" alt="preview" width="200"/>
 
 ## Features
 
