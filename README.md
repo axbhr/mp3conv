@@ -21,3 +21,5 @@ A small Python module for downloading and converting YouTube videos using [yt-dl
 
 ```bash
 pip install yt-dlp
+pip install ffmpeg
+pip install pillow
