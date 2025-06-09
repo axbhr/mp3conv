@@ -1,7 +1,11 @@
+from os import close
+
 import customtkinter as ctk
 from PIL import Image, ImageTk, ImageSequence
 import conv
 import threading
+
+settings_var = False
 
 # ---Funktionen und Klassen---
 # GIF-Animation
@@ -20,7 +24,7 @@ class AnimatedGIF(ctk.CTkLabel):
         for frame in ImageSequence.Iterator(pil_image):
             if self.size:
                 frame = frame.resize(self.size, Image.Resampling.LANCZOS)
-            self.frames.append(ImageTk.PhotoImage(frame.convert("RGBA")))
+            self.frames.append(ctk.CTkImage(frame.convert("RGBA"), size=self.size))
 
     def animate(self):
         self.configure(image=self.frames[self.current_frame])
@@ -31,36 +35,47 @@ class AnimatedGIF(ctk.CTkLabel):
 def start_download():
     url = url_entry.get()
     if not folder_path:
-        chosen_path_label.configure(text="Bitte zuerst einen Pfad wählen!")
+        chosen_path_label.configure(text="please choose a path!")
         return
 
-    chosen_path_label.configure(text="Download läuft...")
+    chosen_path_label.configure(text="downloading...")
 
     def download_thread():
         try:
             conv.download_mp3(url, folder_path, download_mp4_var.get())
-            chosen_path_label.configure(text="Download fertig!")
+            chosen_path_label.configure(text="download finished!")
         except Exception as e:
-            chosen_path_label.configure(text=f"Fehler: {str(e)}")
+            chosen_path_label.configure(text=f"error: {str(e)}")
         finally:
-            chosen_path_label.configure(text=f"Chosen path: {folder_path}")
+            chosen_path_label.configure(text=f"chosen path: {folder_path}")
             url_entry.delete(0, "end")
             status_label.configure(text="")
 
     threading.Thread(target=download_thread, daemon=True).start()
 
 # Einstellungsfenster
+settings_win = None  # globale Variable
+
 def open_settings():
+    global settings_win
+    if settings_win is not None and settings_win.winfo_exists():
+        # Fenster ist schon offen → in den Vordergrund bringen
+        global chosen_path_label
+        chosen_path_label = ctk.CTkLabel(right_frame, text="settings is already open", font=ctk.CTkFont(size=12),
+                                         text_color="#bbbbbb")
+        settings_win.lift()
+        settings_win.focus_force()
+        return
+
+    # Neues Fenster öffnen
     settings_win = ctk.CTkToplevel(app)
     settings_win.title("settings")
     settings_win.geometry("300x200")
     settings_win.resizable(False, False)
 
-    # Beispielinhalt für Einstellungen
     label = ctk.CTkLabel(settings_win, text="settings", font=ctk.CTkFont(size=14))
     label.pack(pady=10, padx=10)
 
-    # Beispiel-Schalter (Checkbox)
     download_mp4_switch = ctk.CTkSwitch(
         settings_win,
         text="download mp4",
@@ -70,9 +85,15 @@ def open_settings():
     )
     download_mp4_switch.pack(pady=5)
 
-    # Schließen-Button
     close_btn = ctk.CTkButton(settings_win, text="close", command=settings_win.destroy)
     close_btn.pack(pady=5)
+
+    def on_close():
+        global settings_win
+        settings_win.destroy()
+        settings_win = None
+
+    settings_win.protocol("WM_DELETE_WINDOW", on_close)
 
 # Gewählter Ordner
 def select_folder():
@@ -172,5 +193,7 @@ select_folder_btn.configure(command=select_folder)
 
 status_label = ctk.CTkLabel(right_frame, text="", font=ctk.CTkFont(size=12), text_color="#bbbbbb")
 status_label.pack(pady=(20,0))
+
+app.bind("<Return>", lambda event: start_download())    #Startet den Download mit der "return"-Taste
 
 app.mainloop()
