@@ -19,7 +19,10 @@ A small Python module for downloading and converting YouTube videos using [yt-dl
 
 ### Installation
 
+1. Navigate to the project via:
 ```bash
-pip install yt-dlp
-pip install ffmpeg
-pip install pillow
+cd Your/Personal/Path
+```
+2. Then just:
+```bash
+pip install requirements
