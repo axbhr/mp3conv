@@ -1,5 +1,3 @@
-from os import close
-
 import customtkinter as ctk
 from PIL import Image, ImageTk, ImageSequence
 import conv
